@@ -67,6 +67,16 @@ function ActivityFeed() {
   return <section className="activity-panel panel"><div className="section-heading compact"><div><span className="section-kicker">The trail</span><h2>Recent activity</h2></div><button className="icon-button subtle" aria-label="More activity options"><Icon name="more" size={18}/></button></div><div className="activity-list">{activity.map((item, index) => <div className="activity-item" key={item.time}><div className={`activity-icon activity-${item.type}`}><Icon name={item.type === 'trend' ? 'trend' : item.type === 'add' ? 'plus' : 'arrow'} size={15}/></div><div className="activity-copy"><strong>{item.title}</strong><p>{item.detail}</p></div><time>{item.time}</time>{index < activity.length - 1 && <span className="activity-line"/>}</div>)}</div><button className="view-all">View full history <Icon name="arrow" size={15}/></button></section>;
 }
 
+function WorkspaceState({ mode }) {
+  const states = {
+    loading: { icon: 'clock', kicker: 'Getting things ready', title: 'Finding your signal', copy: 'Your workspace is loading. This state keeps the first render calm and legible.' },
+    empty: { icon: 'spark', kicker: 'A clean start', title: 'No build loop yet', copy: 'Create one useful objective and Loopforge will help you keep the signal clear.' },
+    offline: { icon: 'archive', kicker: 'Local-first mode', title: 'Working without a connection', copy: 'Your local changes are safe. We will reconcile them when the workspace is reachable again.' }
+  };
+  const state = states[mode];
+  return <main className="state-shell"><div className="state-card" role={mode === 'loading' ? 'status' : 'alert'}><div className="state-icon"><Icon name={state.icon} size={22}/></div><span className="section-kicker">{state.kicker}</span><h1>{state.title}</h1><p>{state.copy}</p><a href="/">Return to workspace <Icon name="arrow" size={15}/></a></div></main>;
+}
+
 function App() {
   const [active, setActive] = useState('Overview');
   const [focusMode, setFocusMode] = useState(false);
@@ -76,6 +86,8 @@ function App() {
   const columns = useMemo(() => ({ now: plan.filter(item => item.id <= 2 || item.tag === 'New'), next: plan.filter(item => item.id === 3), later: plan.filter(item => item.id === 4) }), [plan]);
   const progress = Math.round((plan.filter(item => item.done).length / Math.max(plan.length, 1)) * 100);
   const dateLabel = new Intl.DateTimeFormat('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(new Date());
+  const stateMode = new URLSearchParams(window.location.search).get('state');
+  if (stateMode && ['loading', 'empty', 'offline'].includes(stateMode)) return <WorkspaceState mode={stateMode}/>;
   return <div className="app-shell"><Sidebar active={active} setActive={setActive}/><main className="main"><Topbar active={active} focusMode={focusMode} setFocusMode={setFocusMode}/><div className="content"><div className="welcome-row"><div><p className="greeting">{dateLabel} <span className="sun-dot">●</span></p><h2 className="page-title">Good morning, Abhii.</h2></div><div className="header-note"><span className="mini-line"></span><span>One clear loop<br/><strong>beats ten open tabs.</strong></span></div></div><BuildLoop focusMode={focusMode} setFocusMode={setFocusMode} progress={progress}/><section className="planning-section"><div className="section-heading"><div><span className="section-kicker">The plan</span><h2>Keep the signal clear</h2></div><button className="text-button" onClick={() => setActive('Build loops')}>Open planning view <Icon name="arrow" size={15}/></button></div><div className="plan-grid"><PlanColumn title="Now" subtitle="Do this next" items={columns.now} onToggle={togglePlan} onAdd={addSignal} accent="now-column"/><PlanColumn title="Next" subtitle="Queue with intent" items={columns.next} onToggle={togglePlan} accent="next-column"/><PlanColumn title="Later" subtitle="Not lost. Not now." items={columns.later} onToggle={togglePlan} accent="later-column"/></div></section><Metrics/><ActivityFeed/><footer className="footer"><span>Loopforge <b>v0.1</b></span><span>Built for deliberate momentum <span className="footer-spark">✦</span></span></footer></div></main></div>;
 }
 

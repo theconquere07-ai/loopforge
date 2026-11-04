@@ -17,6 +17,8 @@ npm run dev
 
 The app is a Vite + React frontend and will be available at `http://localhost:3000`.
 
+The interface includes explicit state surfaces for future data wiring. Open `/?state=loading`, `/?state=empty`, or `/?state=offline` to inspect them.
+
 ## Build for production
 
 ```bash
